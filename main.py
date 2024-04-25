@@ -8,12 +8,17 @@ import os # Modul os untuk mengakses fungsi-fungsi yang bergantung pada sistem o
 import platform  # Modul platform untuk informasi sistem operasi
 import psutil    # Modul psutil untuk memantau penggunaan sumber daya
 import language_control as lang # Modul untuk kontrol bahasa
+from concurrent.futures import ThreadPoolExecutor # Modul untuk membuat thread
+
 
 # Kode bagian ini digunakan untuk memberitahu pengguna apa yang sedang program hitung
 show_logs = False
+show_Resource = False
 # Kode bagian ini digunakan untuk memastika program tau perintah apa aja yang tersedia
 known_commands = ['exit', 'mode info', 'current mode', 'show mode', 'help', 'tolong', 'menu', 'bantuan', 'info', 'show log', 'show logs', 'show_verbose', 'show verbose', 'verbose', 'verbose info', 'calcu', 'calculators', 'kalkulator', 'kalku']
 
+# Sementara dinonaktifkan dikarenakan fungsi bagian ini tidak berjalan sesuai rencana
+#num_threads = os.cpu_count()  # Default to use all available cores
 
 # Fungsi untuk mencetak teks dengan warna hijau
 def print_valid(text):
@@ -96,6 +101,8 @@ while True:
                 print("- 'exit': Quit the program")
                 print("- 'info system': Print information about your system")
                 print("- 'mode info': Print current mode")
+                print("- 'show_log': Show log output")
+                print("- 'Resource info': Print information about your system")
                 print("- 'calcu': Enter calculator mode")
                 print("- 'help': Display this help message")
                 if mode == "search":
@@ -119,6 +126,11 @@ while True:
             if user_input.lower() in ['show log', 'show logs', 'show_verbose', 'show verbose','verbose','verbose inf']:
                 show_logs = not show_logs
                 print("Log output is now enabled." if show_logs else "Log output is now disabled.")
+                continue
+
+            if user_input.lower() in ['show Resource', 'show_Resource','Resource info', 'resource info']:
+                show_Resource = not show_Resource
+                print("Resource Used will show." if show_Resource else "Resource used is now disabled.")
                 continue
 
             # Fitur ini untuk menghandle peritah dari user yang typo atau ditidak valid
@@ -238,7 +250,8 @@ while True:
                         progress_combinations = (combinations_processed / total_combinations) * 100
                         progress_time = (elapsed_time / timeout) * 100
                         progress = min(progress_combinations, progress_time)
-                        print(f"\rProgress: {progress:.2f}%", end="")
+                        if show_logs == False:
+                            print(f"\rProgress: {progress:.2f}%", end="")
 
                         if expression in known_results:
                             result = known_results[expression]
@@ -294,7 +307,7 @@ while True:
                 file.write(f"{operation}\n")
 
         # Kode bagian ini digunakan untuk memberitahu user bahwa perhitungan telah selesai
-        print_file_valid(f"Valid calculations have been saved to '{file_path}'")
+        print_file_valid(f"\nValid calculations have been saved to '{file_path}'")
 
         calculation_in_progress = False  # Menandai bahwa perhitungan telah selesai
 
@@ -311,13 +324,19 @@ while True:
         # Mencetak informasi penggunaan sumber daya
         # Bagian ini memiliki akurasi yang sangat rendah dalam memantau sumber daya komputer
         # Anda bisa menonaktifkannya jika ada mau
-        if show_logs:
+        if show_logs == True:
+            print("\nResource Usage:")
+            print_resource_usage(cpu_usage, ram_usage)
+
+        if show_Resource == True:
             print("\nResource Usage:")
             print_resource_usage(cpu_usage, ram_usage)
 
     except KeyboardInterrupt:
         if calculation_in_progress:
-            print("\nWarning: Incomplete process. Calculation interrupted by user.")
+            print_error("\nWarning: Incomplete process. Calculation interrupted by user.")
         else:
             print("\nThank you for using the Math Possibility Finder!")
             sys.exit()
+
+
