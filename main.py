@@ -1,12 +1,18 @@
-import itertools
-import math
-import time
-import sys
-import threading
-import os
+import itertools # Modul itertools untuk membuat iterator untuk perulangan
+import math # Modul math untuk operasi matematika
+import time # Modul time untuk mengakses fungsi-fungsi yang berkaitan dengan waktu
+import sys # Modul sys untuk mengakses fungsi-fungsi yang berkaitan dengan interpreter Python
+import threading # Modul threading untuk membuat thread
+import difflib # Modul difflib untuk saran perintah
+import os # Modul os untuk mengakses fungsi-fungsi yang bergantung pada sistem operasi
 import platform  # Modul platform untuk informasi sistem operasi
 import psutil    # Modul psutil untuk memantau penggunaan sumber daya
 import language_control as lang # Modul untuk kontrol bahasa
+
+# Kode bagian ini digunakan untuk memberitahu pengguna apa yang sedang program hitung
+show_logs = False
+# Kode bagian ini digunakan untuk memastika program tau perintah apa aja yang tersedia
+known_commands = ['exit', 'mode info', 'current mode', 'show mode', 'help', 'tolong', 'menu', 'bantuan', 'info', 'show log', 'show logs', 'show_verbose', 'show verbose', 'verbose', 'verbose info', 'calcu', 'calculators', 'kalkulator', 'kalku']
 
 
 # Fungsi untuk mencetak teks dengan warna hijau
@@ -32,6 +38,14 @@ def print_error(text):
 # Fungsi untuk mencetak teks warning atau peringatan dengan warna merah
 def print_warning(text):
     print("\033[91m" + text + "\033[0m")
+
+# Fungsi untuk memberitahu user jika perintah yang diinputkan tidak dikenali
+# Fitur ini saat ini masih belum tersedia dikarenakan masih Error atau belum tersedia untuk digunakan
+#def suggest_command(user_input, commands):
+    #suggestions = difflib.get_close_matches(user_input, commands, n=1, cutoff=0.7)  # Adjust cutoff for accuracy
+    #if suggestions:
+        #return f"Did you mean: '{suggestions[0]}'?"
+    #return "Command not recognized. Type 'help' for available commands."
 
 # Fungsi untuk mencetak informasi perangkat dan OS
 # Anda dapat menonaktfkan seluruh fitur atau sebagain, jika anda ingin mengnonaktifkan seluruh fitur pastikan anda nonakfikan line nomer 103 hingga 106
@@ -65,7 +79,7 @@ def stop_calculation():
 while True:
     try:
         while True:
-            user_input = input("Enter the target number or type 'help' to show more options: ")
+            user_input = input("Enter the target number or type 'help' to show more options: ").lower()
 
             if user_input.lower() == 'exit':
                 print("Thank you for using the Math Possibility Finder!")
@@ -100,6 +114,21 @@ while True:
                     print("- 'e': Mathematical constant e [e]")
                     print("- 'fact(x)': Factorial of x (e.g., 'fact(5)' for 5!) [fact(*)]")
                 continue
+
+            # Kode bagian ini digunakan untuk menghandle perintah "show log" atau yang mirip untuk mengubah apakah log ditampilkan atau tida
+            if user_input.lower() in ['show log', 'show logs', 'show_verbose', 'show verbose','verbose','verbose inf']:
+                show_logs = not show_logs
+                print("Log output is now enabled." if show_logs else "Log output is now disabled.")
+                continue
+
+            # Fitur ini untuk menghandle peritah dari user yang typo atau ditidak valid
+            # Tetapi Fitur ini saat ini masih belum tersedia dikarenakan masih Error
+            #if user_input in known_commands:
+                # Process the command
+                #pass
+            #else:
+            #suggestion = suggest_command(user_input, known_commands)
+            #print(suggestion)
 
             # Mode kalkulator
             if user_input.lower() in ['calcu', 'calculators', 'kalkulator', 'kalku']:
@@ -168,14 +197,16 @@ while True:
                 try:
                     timeout = int(timeout_str)
 
-                    if len(timeout_str) > 100:
-                        print_error("Maximum search time cannot have more than 100 digits.")
+                    # Kode bagian ini digunakan untuk membatasi inputan user dan memastikan agar tidak overflow
+                    if len(timeout_str) > 7:
+                        print_error("Maximum search time cannot have more than 7 digits.")
                     else:
                         break
                 except ValueError:
                     print_error("Invalid input. Please enter a valid number.")
 
         calculation_in_progress = False  # Menandai bahwa perhitungan sedang berlangsung
+        # Kode bagian ini digunakan untuk memberitahu user bahwa perhitungan sedang berlangsung
         print(f"Calculating for target number: {target}...")
 
         valid_operations = []
@@ -189,6 +220,10 @@ while True:
         timeout_thread = threading.Timer(timeout, stop_calculation)
         timeout_thread.start()
 
+        # Kode bagian ini digunakan untuk menghitung total kombinasi yang akan di proses
+        total_combinations = sum(math.comb(9, n) * 4**(n-1) for n in range(2, max_digits + 1))
+        combinations_processed = 0
+
         while not timeout_reached:
             for num_digits in range(2, max_digits + 1):
                 for nums in itertools.combinations_with_replacement(range(2, 10), num_digits):
@@ -197,19 +232,33 @@ while True:
                         for i in range(num_digits - 1):
                             expression += ops[i] + f"{nums[i + 1]}"
 
+                        # Kode bagian ini digunakan untuk menampilkan progress perhitungan
+                        elapsed_time = time.time() - start_time
+                        combinations_processed += 1
+                        progress_combinations = (combinations_processed / total_combinations) * 100
+                        progress_time = (elapsed_time / timeout) * 100
+                        progress = min(progress_combinations, progress_time)
+                        print(f"\rProgress: {progress:.2f}%", end="")
+
                         if expression in known_results:
                             result = known_results[expression]
-                            print_know(f"Already known: {expression} = {result}")
+                            # Kode bagian ini digunakan untuk menampilkan hasil perhitungan yang sudah diketahui
+                            if show_logs:
+                                print_know(f"Already known: {expression} = {result}")
                         else:
                             try:
                                 result = eval(expression)
                                 if math.isclose(result, target, rel_tol=1e-1000):
                                     valid_operations.append(expression)
-                                    print_valid(f"Valid: {expression} = {result}")
+                                    # Kode bagian ini digunakan untuk menampilkan hasil perhitungan yang valid
+                                    if show_logs:
+                                        print_valid(f"Valid: {expression} = {result}")
                                 else:
                                     invalid_operations.append(expression)
                                     invalid_count += 1
-                                    print_error(f"Not Valid: {expression} = {result}")
+                                    # Kode bagian ini digunakan untuk menampilkan hasil perhitungan yang tidak valid
+                                    if show_logs:
+                                        print_error(f"Not Valid: {expression} = {result}")
                                 known_results[expression] = result  # Menyimpan hasil perhitungan
                             except (ZeroDivisionError, ValueError, OverflowError):
                                 pass
@@ -233,8 +282,10 @@ while True:
 
         # Cek apakah file sudah ada
         if os.path.isfile(file_path):
+            # Kode bagian ini digunakan untuk memberitahu user bahwa file sudah ada dan akan di rename
             new_file_name = f"valid_calculations_{target}.txt"
-            print_file(f"File 'valid_calculations_{target}.txt' in '{file_path}' directory is already exists. Renaming it to '{new_file_name}'.")
+            # Kode bagian ini digunakan untuk memberitahu user bahwa file sudah ada dan akan di rename
+            print_file(f"\nFile 'valid_calculations_{target}.txt' in '{file_path}' directory is already exists. Renaming it to '{new_file_name}'.")
             os.rename(file_path, new_file_name)
 
         # Simpan hasil perhitungan dalam file
@@ -242,6 +293,7 @@ while True:
             for operation in valid_operations:
                 file.write(f"{operation}\n")
 
+        # Kode bagian ini digunakan untuk memberitahu user bahwa perhitungan telah selesai
         print_file_valid(f"Valid calculations have been saved to '{file_path}'")
 
         calculation_in_progress = False  # Menandai bahwa perhitungan telah selesai
@@ -259,8 +311,9 @@ while True:
         # Mencetak informasi penggunaan sumber daya
         # Bagian ini memiliki akurasi yang sangat rendah dalam memantau sumber daya komputer
         # Anda bisa menonaktifkannya jika ada mau
-        print("\nResource Usage:")
-        print_resource_usage(cpu_usage, ram_usage)
+        if show_logs:
+            print("\nResource Usage:")
+            print_resource_usage(cpu_usage, ram_usage)
 
     except KeyboardInterrupt:
         if calculation_in_progress:
