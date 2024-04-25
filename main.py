@@ -6,7 +6,7 @@ import threading
 import os
 import platform  # Modul platform untuk informasi sistem operasi
 import psutil    # Modul psutil untuk memantau penggunaan sumber daya
-import language_control as lang
+import language_control as lang # Modul untuk kontrol bahasa
 
 
 # Fungsi untuk mencetak teks dengan warna hijau
@@ -34,6 +34,7 @@ def print_warning(text):
     print("\033[91m" + text + "\033[0m")
 
 # Fungsi untuk mencetak informasi perangkat dan OS
+# Anda dapat menonaktfkan seluruh fitur atau sebagain, jika anda ingin mengnonaktifkan seluruh fitur pastikan anda nonakfikan line nomer 103 hingga 106
 def print_system_info():
     system_info = platform.uname()
     print(f"System: {system_info.system}")
@@ -69,11 +70,18 @@ while True:
             if user_input.lower() == 'exit':
                 print("Thank you for using the Math Possibility Finder!")
                 sys.exit()
+            
+            # Check for 'mode info' command to display current mode
+            if user_input.lower() in ['mode info', 'current mode', 'show mode']:
+                print(f"You are currently in {mode} mode.")
+                continue
 
             # Menampilkan bantuan
-            if user_input.lower() in ['help', 'tolong', 'menu', 'bantua', 'info']:
+            if user_input.lower() in ['help', 'tolong', 'menu', 'bantuan', 'info']:
                 print("Available commands:")
                 print("- 'exit': Quit the program")
+                print("- 'info system': Print information about your system")
+                print("- 'mode info': Print current mode")
                 print("- 'calcu': Enter calculator mode")
                 print("- 'help': Display this help message")
                 if mode == "search":
@@ -98,11 +106,19 @@ while True:
                 mode = "calculator"
                 print_warning("Calculator mode (Warning: This mode is under development and may have limited functionality or bugs). Enter 'back' to return to search mode.")
                 continue
+            # Fitur Informasi System untuk Print informasi tentang system anda saat ini
+            if user_input.lower() in ['informasi system', 'info system', 'tentang system', 'tentang system', 'informasi_system', 'system', 'system_info', 'info_system']:
+                print("\nSystem Information:")
+                print_system_info()
+                continue
 
             # Kembali ke mode mencari
-            if user_input.lower() in ['back', 'kembali', 'return']:
-                mode = "search"
-                print("Returning to search mode.")
+            if user_input.lower() in ['back', 'kembali', 'return', 'home']:
+                if mode == "search":
+                    print_error("You are already in search mode.")
+                else:
+                    mode = "search"
+                    print("Returning to search mode.")
                 continue
 
             if mode == "calculator":
@@ -231,8 +247,9 @@ while True:
         calculation_in_progress = False  # Menandai bahwa perhitungan telah selesai
 
         # Tampilkan informasi perangkat dan OS
-        print("\nSystem Information:")
-        print_system_info()
+        # Untuk sementara bagian ini dinonaktifkan karena saya merasa tidak terlalu memerlukannya
+        #print("\nSystem Information:")
+        #print_system_info()
 
         # Menghitung penggunaan sumber daya program
         process = psutil.Process(os.getpid())
@@ -240,6 +257,8 @@ while True:
         ram_usage = process.memory_percent()
 
         # Mencetak informasi penggunaan sumber daya
+        # Bagian ini memiliki akurasi yang sangat rendah dalam memantau sumber daya komputer
+        # Anda bisa menonaktifkannya jika ada mau
         print("\nResource Usage:")
         print_resource_usage(cpu_usage, ram_usage)
 
