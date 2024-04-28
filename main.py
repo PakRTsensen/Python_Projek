@@ -69,8 +69,9 @@ def print_resource_usage(cpu_usage, ram_usage):
     print(f"RAM Usage: {ram_usage}%")
 
 # Teks pembuka dalam bahasa Inggris
-print("Welcome to the Math Possibility Finder")
+print("Welcome to the Math Possibility Finder v2.7.6")
 print("Created by Hasanur Rahevy")
+print_warning(f"if you can't exit using CTRL+C while after interrupted the process, try process again with any number or \t type 'exit'")
 
 mode = "search"  # Mode default adalah mode mencari
 known_results = {}  # Dictionary untuk menyimpan hasil perhitungan yang sudah diketahui
@@ -86,14 +87,30 @@ while True:
         while True:
             user_input = input("Enter the target number or type 'help' to show more options: ").lower()
 
-            if user_input.lower() == 'exit':
+            if user_input.lower() in  ['exit', 'keluar', 'quit', 'out']:
                 print("Thank you for using the Math Possibility Finder!")
                 sys.exit()
             
             # Check for 'mode info' command to display current mode
-            if user_input.lower() in ['mode info', 'current mode', 'show mode']:
+            if user_input.lower() in ['mode info', 'current mode', 'show mode', 'mode?']:
                 print(f"You are currently in {mode} mode.")
                 continue
+
+            if user_input.lower() == 'source':
+                print(f"you can get the source code at the github @PaktRTsensen. (https://github.com/PakRTsensen/Python_Projek)")
+                continue
+
+            if user_input.lower() in  ['cmd', 'terminal', 'bash']:
+                print_warning(f"only works on linux")
+                os.system("bash")
+                continue
+
+            if user_input.lower() in  ['cmd root', 'terminal root', 'bash', 'sudo su']:
+                print_warning(f"only works on linux")
+                os.system("sudo su")
+                os.system("bash")
+                continue
+
 
             # Menampilkan bantuan
             if user_input.lower() in ['help', 'tolong', 'menu', 'bantuan', 'info']:
@@ -102,7 +119,11 @@ while True:
                 print("- 'info system': Print information about your system")
                 print("- 'mode info': Print current mode")
                 print("- 'show_log': Show log output")
-                print("- 'Resource info': Print information about your system")
+                print("- 'bash': to enter the terminal mode (linux only)")
+                print("- 'sudo su': to enter the terminal mode (linux only)")
+                print("- 'Resource info': Print system resource used")
+                print("- 'resource status': to to check that system resource used")
+                print("- 'source': to get this source code")
                 print("- 'calcu': Enter calculator mode")
                 print("- 'help': Display this help message")
                 if mode == "search":
@@ -128,9 +149,14 @@ while True:
                 print("Log output is now enabled." if show_logs else "Log output is now disabled.")
                 continue
 
-            if user_input.lower() in ['show Resource', 'show_Resource','Resource info', 'resource info']:
+            if user_input.lower() in ['show resource', 'show_resource','resource info', 'resource info']:
                 show_Resource = not show_Resource
                 print("Resource Used will show." if show_Resource else "Resource used is now disabled.")
+                continue
+
+                # Kode bagian ini digunakan untuk menampilkan apakah tampilan penggunaa sumber daya komputer akan ditampilkan atau tidak
+            if user_input.lower() in ['resource status', 'resource?', 'resource verbose status']:
+                print(f"resource status are showed." if show_Resource else "resource status off.")
                 continue
 
             # Fitur ini untuk menghandle peritah dari user yang typo atau ditidak valid
@@ -180,7 +206,13 @@ while True:
                 else:
                     break
             except ValueError:
-                print_error("Invalid input. Please enter a number or 'exit' to quit.")
+                print_error("Invalid input or command not found. Please enter a number or 'help' to get help.")
+                
+            if user_input.lower() == 'default limit':
+                print_file(f"- Default input number cannot more than 100 digits.\n- Default input number cannot be zero (0)\n- Default Maximum digit to search must more than 1 digits or 16 seconds, and cannot more 100 digits\n- Default Maximum Number have to be must be greater than 1 and cannot more than 100")
+
+            #if user_input.lower() == 'reload':
+                #os.system("killall -9 python3 && python3 main.py")
 
         while True:
             max_digits_str = input("Enter the maximum number of digits: ")
@@ -193,8 +225,8 @@ while True:
 
                     if max_digits <= 1:
                         print_error("Sorry, maximum number of digits must be greater than 1")
-                    elif max_digits >= 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000:
-                        print_error("Maximum number of digits cannot be more than 100 digits of number.")
+                    elif max_digits > 100:
+                        print_error("Maximum number of digits cannot be more than 100 digits or type 'set limit [limit]'.")
                     else:
                         break
                 except ValueError:
@@ -212,12 +244,16 @@ while True:
                     # Kode bagian ini digunakan untuk membatasi inputan user dan memastikan agar tidak overflow
                     if len(timeout_str) > 7:
                         print_error("Maximum search time cannot have more than 7 digits.")
+                    if len(timeout_str) <= 1:
+                        print_error("Maximum search time must be greater than 1 seconds")
+                    if len(timeout_str) <= 16:
+                        print_error("Maximum search time must be greater than 16 seconds")
                     else:
                         break
                 except ValueError:
                     print_error("Invalid input. Please enter a valid number.")
 
-        calculation_in_progress = False  # Menandai bahwa perhitungan sedang berlangsung
+        calculation_in_progress = True  # Menandai bahwa perhitungan sedang berlangsung
         # Kode bagian ini digunakan untuk memberitahu user bahwa perhitungan sedang berlangsung
         print(f"Calculating for target number: {target}...")
 
@@ -324,11 +360,7 @@ while True:
         # Mencetak informasi penggunaan sumber daya
         # Bagian ini memiliki akurasi yang sangat rendah dalam memantau sumber daya komputer
         # Anda bisa menonaktifkannya jika ada mau
-        if show_logs == True:
-            print("\nResource Usage:")
-            print_resource_usage(cpu_usage, ram_usage)
-
-        if show_Resource == True:
+        if show_logs == True or show_Resource == True:
             print("\nResource Usage:")
             print_resource_usage(cpu_usage, ram_usage)
 
