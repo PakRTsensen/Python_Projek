@@ -7,7 +7,6 @@ import difflib # Modul difflib untuk saran perintah
 import os # Modul os untuk mengakses fungsi-fungsi yang bergantung pada sistem operasi
 import platform  # Modul platform untuk informasi sistem operasi
 import psutil    # Modul psutil untuk memantau penggunaan sumber daya
-import language_control as lang # Modul untuk kontrol bahasa
 from concurrent.futures import ThreadPoolExecutor # Modul untuk membuat thread
 
 
@@ -69,7 +68,7 @@ def print_resource_usage(cpu_usage, ram_usage):
     print(f"RAM Usage: {ram_usage}%")
 
 # Teks pembuka dalam bahasa Inggris
-print("Welcome to the Math Possibility Finder v2.7.6")
+print("Welcome to the Math Possibility Finder v2.7.7")
 print("Created by Hasanur Rahevy")
 print_warning(f"if you can't exit using CTRL+C while after interrupted the process, try process again with any number or \t type 'exit'")
 
